@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Special Birthday Dinner 🎂</title>
+    <style>
+        /* --- Reset & Layout Dasar --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            perspective: 1000px;
+        }
+
+        /* --- Kartu Undangan Utama --- */
+        .card {
+            width: 90%;
+            max-width: 420px;
+            padding: 40px 30px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            z-index: 10;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: cardEntrance 1s ease-out;
+        }
+
+        @keyframes cardEntrance {
+            0% { transform: translateY(-100px) rotateX(-30deg); opacity: 0; }
+            100% { transform: translateY(0) rotateX(0); opacity: 1; }
+        }
+
+        /* Efek kilau di sudut kartu */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -5px; left: -5px; right: -5px; bottom: -5px;
+            background: linear-gradient(45deg, #ff9a9e, #fad0c4, #ffecd2, #fcb69f);
+            z-index: -1;
+            border-radius: 35px;
+            filter: blur(10px);
+            opacity: 0.7;
+            animation: borderGlow 5s infinite alternate;
+        }
+
+        @keyframes borderGlow {
+            0% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* --- Tipografi --- */
+        .emoji-header { font-size: 50px; margin-bottom: 10px; animation: wiggle 2s infinite; }
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(-3deg); }
+            50% { transform: rotate(3deg); }
+        }
+
+        h1 { color: #764ba2; font-size: 32px; font-weight: 800; letter-spacing: 1px; }
+        h2 { color: #555; font-size: 18px; margin-top: 5px; font-weight: 600;}
+
+        .invitation-text {
+            margin: 25px 0;
+            color: #666;
+            line-height: 1.8;
+            font-size: 15px;
+        }
+
+        .highlight-name {
+            color: #ff758c;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        /* --- Kotak Detail Acara --- */
+        .info-box {
+            background: #f8f9fa;
+            border-left: 5px solid #764ba2;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            text-align: left;
+            font-size: 14px;
+            color: #444;
+        }
+
+        .info-box b { color: #333; }
+        .info-icon { margin-right: 8px; }
+
+        /* --- Area Tombol Interaktif --- */
+        .question-p { margin-bottom: 15px; font-weight: 500; color: #555; }
+        .btn-container { position: relative; min-height: 60px; display: flex; justify-content: center; align-items: center;}
+
+        /* Tombol utama di dalam kartu */
+        .card .main-action-btn {
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            background: linear-gradient(45deg, #ff758c 0%, #ff7eb3 100%);
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(255, 117, 140, 0.4);
+            position: absolute;
+        }
+
+        .card .main-action-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 13px 25px rgba(255, 117, 140, 0.6);
+        }
+
+        .card .main-action-btn:active { transform: translateY(1px); }
+
+        .card .main-action-btn.animate-out {
+            animation: explodeOut 0.5s forwards;
+        }
+
+        @keyframes explodeOut {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.5; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        /* Partikel hati kecil */
+        .particle {
+            position: absolute;
+            font-size: 20px;
+            pointer-events: none;
+            animation: particle-float 1s ease-out forwards;
+            opacity: 0;
+        }
+
+        @keyframes particle-float {
+            0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rot)); opacity: 0; }
+        }
+
+        /* --- Modal Umum (Overlay) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 30px;
+            text-align: center;
+            width: 85%;
+            max-width: 350px;
+            transform: scale(0.5) rotateY(90deg);
+            transition: all 0.4s ease;
+            box-shadow: 0 30px 70px rgba(0,0,0,0.4);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1) rotateY(0);
+        }
+
+        /* --- Modal Input Nama --- */
+        #modalInputNama {
+            opacity: 1;
+            visibility: visible;
+        }
+        #modalInputNama .modal-content {
+            transform: scale(1) rotateY(0);
+        }
+
+        .input-nama {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 15px 0 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 15px;
+            font-size: 15px;
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-nama:focus {
+            border-color: #764ba2;
+        }
+
+        .modal-emoji { font-size: 50px; margin-bottom: 10px; }
+        .modal-content h3 { color: #764ba2; font-size: 22px; margin-bottom: 8px; }
+        .modal-content p { font-size: 14px; color: #666; font-weight: normal; line-height: 1.4; }
+
+        .close-modal-btn, .submit-name-btn {
+            margin-top: 15px;
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #764ba2 0%, #667eea 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s;
+            width: 100%;
+            box-shadow: 0 5px 15px rgba(118, 75, 162, 0.3);
+            position: static; /* Memastikan tombol tidak keluar dari kotak modal */
+        }
+        .close-modal-btn:hover, .submit-name-btn:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(118, 75, 162, 0.4);
+        }
+
+        /* --- Animasi Latar Belakang (Love Confetti) --- */
+        .bg-hearts {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1; pointer-events: none;
+        }
+
+        .bg-heart {
+            position: absolute;
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 20px;
+            animation: fall linear infinite;
+            top: -10%;
+        }
+
+        @keyframes fall {
+            to { transform: translateY(110vh) rotate(360deg); }
+        }
+    </style>
+    <!-- Import Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400,600,800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Latar Belakang Animasi Hati Turun -->
+    <div class="bg-hearts" id="bgHearts"></div>
+
+    <!-- Modal Input Nama (MUNCUL OTOMATIS DI AWAL) -->
+    <div class="modal-overlay active" id="modalInputNama">
+        <div class="modal-content">
+            <div class="modal-emoji">💌</div>
+            <h3>Hai, Siapa Kamu?</h3>
+            <p>Masukkan nama kamu sebelum membuka undangan ya:</p>
+            <input type="text" id="namaTamu" class="input-nama" placeholder="Contoh: Budi / Sayang ❤️" autocomplete="off">
+            <button class="submit-name-btn" onclick="bukaUndangan()">Buka Undangan ✨</button>
+        </div>
+    </div>
+
+    <!-- Kartu Undangan -->
+    <div class="card">
+        <div class="emoji-header">🎂🎈✨</div>
+        <h1>Birthday Dinner 💕</h1>
+        <h2>Rafi Akbar & Kharina Aristya</h2>
+
+        <p class="invitation-text">
+            Halo <span class="highlight-name" id="tampilNama">Zahwa Azzahra Fatihah</span> yang paling cantik sejagat raya! 👑✨
+            <br>
+            Dengan segala kerendahan hati (cieee), gue mau ngucapin...
+            <br>
+            <b>Ultah nih gue!</b> 🎂 Saatnya traktir-traktir... eh, ditraktir ding.
+            <br>
+            Yuk, ngopi dan makan malam bareng!
+        </p>
+
+        <div class="info-box">
+            <p><span class="info-icon">📅</span><b>Kapan:</b> 4 Oktober 2026</p>
+            <p><span class="info-icon">🕓</span><b>Waktu:</b> Sore Menjelang Malam</p>
+            <p><span class="info-icon">📍</span><b>Dimana:</b> Calf</p>
+        </div>
+
+        <p class="question-p">
+            Will you join me? 👀❤️
+        </p>
+
+        <div class="btn-container">
+            <button class="main-action-btn" id="hapusTombol" onclick="mulaiAnimasi()">
+                Of Course! ❤️️
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Pop-up Interaktif (Setelah Klik "Of Course") -->
+    <div class="modal-overlay" id="modalPesan">
+        <div class="modal-content">
+            <div class="modal-emoji">🎁</div>
+            <h3>Asik! See You! 🎉</h3>
+            <p style="color: #ff758c; font-weight: bold; font-size: 18px;">“jangan lupa kasih gue kado”</p>
+            <button class="close-modal-btn" onclick="tutupModal()">Siap Laksanakan! 🫡</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Fungsi untuk Latar Belakang Hati ---
+        function buatHatiLatar() {
+            const bg = document.getElementById('bgHearts');
+            const jumlahHati = 15;
+
+            for (let i = 0; i < jumlahHati; i++) {
+                const heart = document.createElement('div');
+                heart.classList.add('bg-heart');
+                heart.innerHTML = Math.random() > 0.5 ? '❤️' : '💕';
+                
+                heart.style.left = Math.random() * 100 + '%';
+                heart.style.fontSize = Math.random() * 20 + 10 + 'px';
+                heart.style.animationDuration = Math.random() * 6 + 4 + 's';
+                heart.style.animationDelay = Math.random() * 5 + 's';
+
+                bg.appendChild(heart);
+            }
+        }
+        buatHatiLatar();
+
+        // --- Fungsi Membuka Undangan Setelah Input Nama ---
+        function bukaUndangan() {
+            const inputNama = document.getElementById('namaTamu').value.trim();
+            const tampilNama = document.getElementById('tampilNama');
+            const modalInput = document.getElementById('modalInputNama');
+
+            if (inputNama === "") {
+                alert("Tulis nama kamu dulu ya! 😊");
+                return;
+            }
+
+            // Mengubah teks sapaan
+            tampilNama.innerHTML = `Dari <span style="color:#764ba2;">${inputNama}</span> untuk Zahwa Azzahra Fatihah`;
+
+            // Menghilangkan modal input nama
+            modalInput.classList.remove('active');
+            
+            setTimeout(() => {
+                modalInput.style.display = 'none';
+            }, 400);
+        }
+
+        // --- Fungsi Utama: Tombol Meledak & Tampilkan Modal Akhir ---
+        function mulaiAnimasi() {
+            const tombol = document.getElementById('hapusTombol');
+
+            tombol.classList.add('animate-out');
+
+            const rect = tombol.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                particle.innerHTML = '❤️';
+                document.body.appendChild(particle);
+
+                const tx = (Math.random() - 0.5) * 200 + 'px';
+                const ty = (Math.random() - 0.5) * 200 + 'px';
+                const rot = (Math.random() - 0.5) * 720 + 'deg';
+
+                particle.style.setProperty('--tx', tx);
+                particle.style.setProperty('--ty', ty);
+                particle.style.setProperty('--rot', rot);
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+
+                setTimeout(() => {
+                    particle.remove();
+                }, 1000);
+            }
+
+            setTimeout(() => {
+                bukaModal();
+                tombol.style.display = 'none';
+            }, 500);
+        }
+
+        // --- Fungsi Modal Akhir ---
+        function bukaModal() {
+            document.getElementById("modalPesan").classList.add("active");
+        }
+
+        function tutupModal() {
+            document.getElementById("modalPesan").classList.remove("active");
+        }
+    </script>
+</body>
+</html>
